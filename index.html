@@ -1,0 +1,200 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="./css/style.css">
+</head>
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script>
+	
+$(document).ready(function(){
+  $.ajax({
+    type: "GET",
+    url: "./data/800-53-controls.xml",
+    dataType: "xml",
+	success: function(xml){
+		parseXml($(xml), "", "");
+	}
+  });
+  
+  $("#selControlClass").change(function(){
+  	var value = $(this).val();
+	resetFamilyDD();
+	resetPriorityDD();
+	$.ajax({
+    	type: "GET",
+    	url: "./data/800-53-controls.xml",
+    	dataType: "xml",
+		success: function(xml){
+			parseXml(xml, "control-class", value);
+		}
+  	});	
+  });
+  
+  $("#selFamily").change(function(){
+  	var value = $(this).val();
+	resetClassDD();
+	resetPriorityDD();
+	$.ajax({
+    	type: "GET",
+    	url: "./data/800-53-controls.xml",
+    	dataType: "xml",
+		success: function(xml){
+			parseXml(xml, "family", value);
+		}
+  	});	
+  });
+
+  $("#selPriority").change(function(){
+  	var value = $(this).val();
+	resetClassDD();
+	resetFamilyDD();
+	$.ajax({
+    	type: "GET",
+    	url: "./data/800-53-controls.xml",
+    	dataType: "xml",
+		success: function(xml){
+			parseXml(xml, "priority", value);
+		}
+  	});	
+  });
+    
+});
+
+function overlayOpen() {
+	el = document.getElementById("overlay");
+	el.style.visibility = (el.style.visibility == "visible") ? "hidden" : "visible";
+}
+
+function overlayClose() {
+	el = document.getElementById("overlay");
+	el.style.visibility = (el.style.visibility == "hidden") ? "visible" : "hidden";
+}
+
+function findControl(e) {
+	$.ajax({
+    type: "GET",
+    url: "./data/800-53-controls.xml",
+    dataType: "xml",
+    success: function(xml){
+		var tableContent = "<table border='1'>";
+		$(xml).find("control").each(function(){
+			if($(this).find("number").text() == e){
+				var number = $(this).find("number").text();
+		 		var title = $(this).find("title").text();
+				var controlClass = $(this).find("control-class").text();
+				var family = $(this).find("family").text();
+				var priority = $(this).find("priority").text();
+				var description = $(this).find("description").text();
+				var supplementalGuidance = $(this).find("supplemental-guidance").text();
+		 		tableContent += "<tr><td>Number:</td><td>" + number + "</td></tr>" ;
+				tableContent += "<tr><td>Title:</td><td>" + title + "</td></tr>" ;
+				tableContent += "<tr><td>Class:</td><td>" + controlClass + "</td></tr>" ;
+				tableContent += "<tr><td>Title:</td><td>" + family + "</td></tr>" ;
+				tableContent += "<tr><td>Priority:</td><td>" + priority + "</td></tr>" ;
+				tableContent += "<tr><td>Description:</td><td>" + description + "</td></tr>" ;
+				tableContent += "<tr><td>Supplemental Guidance:</td><td>" + supplementalGuidance + "</td></tr>" ;
+			}
+		});
+		tableContent += "</table>";
+		resetOutput();
+		$("#output").append(tableContent);
+	} 
+  	});
+	overlayOpen();
+}
+
+function parseXml(data,filter,value){
+	resetTable();
+	var tableContent = "<table border='1'>";
+	if(filter.length>0){
+		$(data).find("control").each(function(){
+			if($(this).find(filter).text() == value){
+				var number = $(this).find("number").text();
+		 		var title = $(this).find("title").text();
+				var controlClass = $(this).find("control-class").text();
+				var family = $(this).find("family").text();
+				var priority = $(this).find("priority").text();
+		 		tableContent += "<tr><td><a href='#' onclick='findControl(\""+number+"\")'>";
+		 		tableContent += number + "</a></td><td>" + title + "</td><td>" + controlClass + "</td><td>" + family + "</td><td>" + priority + "</td></tr>";
+			}
+		});
+	}else{
+		$(data).find("control").each(function(){
+			var number = $(this).find("number").text();
+		 	var title = $(this).find("title").text();
+			var controlClass = $(this).find("control-class").text();
+		 	var family = $(this).find("family").text();
+				var priority = $(this).find("priority").text();
+		 		tableContent += "<tr><td><a href='#' onclick='findControl(\""+number+"\")'>";
+		 		tableContent += number + "</a></td><td>" + title + "</td><td>" + controlClass + "</td><td>" + family + "</td><td>" + priority + "</td></tr>";
+		});
+	}
+	tableContent += "</table>";
+	$("#resultSet").append(tableContent);
+} 
+	
+function resetTable(){
+	$("#resultSet").html("");
+}
+
+function resetOutput(){
+	$("#output").html("");
+}
+
+function resetClassDD(){
+	$("#selControlClass").val(0);
+}
+
+function resetFamilyDD(){
+	$("#selFamily").val(0);
+}
+
+function resetPriorityDD(){
+	$("#selPriority").val(0);
+}
+
+</script>
+<body style="padding:50px 0px 0px 100px">
+<form id="controlForm">
+  <select id="selControlClass">
+    <option>Choose a Class</option>
+	<option>Technical</option>
+	<option>Management</option>
+	<option>Operational</option>
+  </select>
+  <select id="selFamily">
+    <option>Choose a Family</option>
+	<option>Access Control</option>
+	<option>Audit and Accountability</option>
+	<option>Awareness and Training</option>
+	<option>Configuration Management</option>
+	<option>Contingency Planning</option>
+	<option>Identification and Authentication</option>
+	<option>Incident Response</option>
+	<option>Maintenance</option>
+	<option>Media Protection</option>
+	<option>Personnel Security</option>
+	<option>Physical and Environmental Protection</option>
+	<option>Planning</option>
+	<option>Program Management</option>
+	<option>Risk Assessment</option>
+	<option>Security Assessment and Authorization</option>
+	<option>System and Communications Protection</option>
+	<option>System and Information Integrity</option>
+	<option>System and Services Acquisition</option>
+  </select>
+  <select id="selPriority">
+    <option>Choose a Priority</option>
+	<option></option>
+	<option>P0</option>
+	<option>P1</option>
+	<option>P2</option>
+	<option>P3</option>
+  </select>
+</form>
+<div id="resultSet"></div>
+<div id="overlay">
+	<span style="text-align:right" id="close"><a href='#' onclick='overlayClose()'>close</a></span>
+     <div id="output"></div>
+</div>
+</body>
+</html>
